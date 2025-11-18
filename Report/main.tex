@@ -1,0 +1,166 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   Internship Report LaTeX - MAIN FILE
+%   Student: REGRAG Anas, 2IA - ENSIAS
+%   This file wraps all the chapter content for a modular project structure.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt, a4paper]{report}
+
+%------------------------------------------------------------------------------
+%   REQUIRED PACKAGES
+%------------------------------------------------------------------------------
+
+% --- Document Geometry and Layout ---
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{times}
+\usepackage{setspace}
+\usepackage{microtype} % excellent: improves line breaks and kerning
+\setlength{\emergencystretch}{2em} % allow TeX a little extra stretch to avoid overfull boxes
+\onehalfspacing
+\usepackage{listings}
+\usepackage{xcolor} % For colors
+
+% Define a custom style for Python code
+\lstdefinestyle{mystyle}{
+    language=Python,
+    backgroundcolor=\color{white},   
+    commentstyle=\color{gray},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=true,         % Break lines only at whitespaces
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 % Keep spaces for indentation
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% --- Graphics and Figures ---
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\graphicspath{{images/}} % Optional: Specify a folder for your images
+
+% --- Headers and Footers ---
+\usepackage{fancyhdr}
+
+% --- Table of Contents and References ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=blue,
+    pdftitle={Internship Report - REGRAG Anas},
+    pdfpagemode=FullScreen,
+}
+\usepackage[nottoc,notlot,notlof]{tocbibind}
+
+% --- Language and Placeholders ---
+\usepackage[english]{babel}
+\usepackage{lipsum}
+
+
+%------------------------------------------------------------------------------
+%   HEADER AND FOOTER CONFIGURATION
+%------------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\fancyhead[L]{Chapter \thechapter}
+\fancyhead[R]{\nouppercase{\leftmark}}
+
+\fancyfoot[L]{Internship Report - 2IA}
+\fancyfoot[R]{\thepage}
+
+
+%------------------------------------------------------------------------------
+%   DOCUMENT START
+%------------------------------------------------------------------------------
+\begin{document}
+
+%------------------------------------------------------------------------------
+%   TITLE PAGE
+%------------------------------------------------------------------------------
+\begin{titlepage}
+    \centering
+    
+    % --- Logos (Placeholders) ---
+    \begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{./images/ensias_logo.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{./images/onda_logo.png}
+    \end{subfigure}
+\end{figure}
+
+    
+    \vspace{1.5cm}
+    
+    {\Huge \bfseries Internship Report}\\[0.5cm]
+    {\Large Artificial Intelligence Engineering - 2nd Year}\\[1.5cm]
+    
+    {\Huge \bfseries Flight Traffic Analysis and Prediction Dashboard}\\[2.0cm]
+    
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushleft} \large
+            \emph{Presented by:}\\
+            REGRAG Anas
+        \end{flushleft}
+    \end{minipage}
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushright} \large
+            \emph{Supervised by:}\\
+            Mr. Darnag RACHIDE
+        \end{flushright}
+    \end{minipage}
+    
+    \vspace{2cm}
+    
+    {\large Internship performed at:}\\[0.5cm]
+    {\Large \bfseries Office National Des Aéroports (ONDA)}\\[2.5cm]
+    
+    {\large \bfseries Defended before the jury composed of:}\\
+    \begin{tabular}{ll}
+        Jury:   & M. Lazaar \\
+        Jury:   & E. Hssyani \\
+    \end{tabular}
+    
+    \vfill
+    
+    {\large \bfseries Academic Year: 2025-2026}
+\end{titlepage}
+
+
+%------------------------------------------------------------------------------
+%   PRELIMINARY PAGES, TOC, ETC.
+%------------------------------------------------------------------------------
+\input{sections/00_preliminaries.tex}
+
+
+%------------------------------------------------------------------------------
+%   MAIN CONTENT - CHAPTERS ARE INCLUDED HERE
+%------------------------------------------------------------------------------
+\input{sections/01_introduction.tex}
+\input{sections/02_context.tex}
+\input{sections/03_analysis.tex}
+\input{sections/04_design.tex}
+\input{sections/05_implementation.tex}
+\input{sections/06_conclusion.tex}
+
+
+
+\end{document}

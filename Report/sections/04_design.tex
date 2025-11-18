@@ -1,0 +1,107 @@
+% --- This goes into sections/04_design.tex ---
+
+\chapter{Design}
+\label{chap:design}
+
+Following the analysis and specification of requirements, the design phase focused on architecting a solution that was not only functional but also robust, scalable, and maintainable. This chapter details the two core pillars of the design process: the selection and justification of the technology stack, and the modeling of the global system architecture, which is foundational to the project's performance and reliability.
+
+\section{Technical Choices}
+The selectioneof technologies for this project was driven by a strategy of leveraging a unified, high-performance ecosystem to ensure a seamless workflow from data experimentation to production deployment. Each component was chosen for its specific strengths in addressing the project's requirements. Figure \ref{fig:tech_stack} illustrates the primary tools used.
+
+\begin{figure}[h!]
+    \centering
+    % First row
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../images/python_logo.png}
+        \caption*{Python}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../images/pandas_logo.png}
+        \caption*{Pandas}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../images/scikit_logo.png}
+        \caption*{Scikit-learn}
+    \end{subfigure}
+
+    \vspace{0.5em} % space between rows
+
+    % Second row
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../images/lightGBM_logo.png}
+        \caption*{LightGBM}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../images/dash_logo.png}
+        \caption*{Dash Plotly}
+    \end{subfigure}
+
+    \caption{Core components of the project's technology stack.}
+    \label{fig:tech_stack}
+\end{figure}
+
+
+
+
+\begin{itemize}
+    \item \textbf{Python as the Core Language:} The decision to build the entire solution in Python was fundamental. As the de facto language for machine learning, it provides an unparalleled ecosystem of libraries. More importantly, it enables a unified development environment for every stage of the project: data ingestion (Pandas), model training (Scikit-learn, LightGBM), and web deployment (Dash). This eliminates the friction and complexity of integrating disparate systems written in different languages, thereby accelerating development and simplifying long-term maintenance.
+
+    \item \textbf{Pandas for Data Manipulation:} For handling the tabular flight data, Pandas was the obvious choice. Its core `DataFrame` structure is highly optimized for vectorized operations, allowing for efficient data cleaning, transformation, and feature engineering on large datasets without resorting to slow, iterative loops. This focus on performance is critical for building a scalable data pipeline.
+
+    \item \textbf{Scikit-learn for the Modeling Workflow:} Scikit-learn was chosen not just for its model implementations, but for its powerful workflow engineering tools. The use of the \textbf{\texttt{Pipeline}} and \textbf{\texttt{ColumnTransformer}} objects was central to the design. This approach encapsulates the entire preprocessing and modeling sequence into a single, serializable object. This is a critical engineering practice that guarantees reproducibility and prevents data leakage, ensuring that the exact same transformations are applied during training and live inference.
+
+    \item \textbf{LightGBM for Advanced Modeling:} While Scikit-learn provided a solid baseline with Ridge Regression, the data's complex, non-linear patterns necessitated a more powerful model. LightGBM was selected over other gradient boosting frameworks due to its superior performance in terms of both training speed and memory efficiency. Its leaf-wise tree growth algorithm makes it exceptionally fast on large datasets, a key consideration for future scalability.
+
+    \item \textbf{Dash Plotly for Deployment:} To meet the requirement of an interactive application, Dash was the optimal choice. Its pure Python nature allowed me to build a sophisticated web front-end without writing a single line of JavaScript. This drastically reduced development complexity and allowed for seamless integration of the trained Scikit-learn pipelines directly into the application's backend logic. The rich, interactive charting capabilities of Plotly provided the required level of data exploration for the end-user, fulfilling a core functional requirement.
+\end{itemize}
+
+\section{Modeling \& Architecture}
+The system's architecture was designed around a core MLOps principle: the strict separation of the \textbf{offline training pipeline} from the \textbf{online inference application}. This two-part architecture, illustrated in Figure \ref{fig:system_architecture}, is essential for building a scalable and reliable machine learning system.
+
+\begin{figure}[h!]
+    \centering
+    % First image
+    \includegraphics[width=0.7\linewidth]{../images/pipeline_architecture.png}
+    \vspace{0.5cm} % Gap between images
+
+    % Second image
+    \includegraphics[width=0.7\linewidth]{../images/training_architecture.png}
+    \vspace{0.5cm} % Gap between images
+
+    % Third image
+    \includegraphics[width=0.7\linewidth]{../images/webpagearchitecure.png}
+
+    \caption{Global System Architecture: The offline training pipeline produces a model artifact that is consumed by the online inference application.}
+    \label{fig:system_architecture}
+\end{figure}
+
+
+\paragraph{Offline Training Pipeline (\texttt{train\_model.py})}
+This component is a standalone, executable script responsible for all computationally intensive tasks. Its sole purpose is to produce a single, deployable model artifact.
+\begin{itemize}
+    \item \textbf{Responsibilities:} It handles the ingestion of the full raw dataset, executes the entire feature engineering pipeline, trains multiple machine learning models, and performs a rigorous evaluation to compare their performance.
+    \item \textbf{Execution:} This pipeline is designed to be run periodically (e.g., weekly or monthly) to retrain the models on new data. It is not executed in real-time.
+    \item \textbf{Output:} Its final output is a single serialized file (\texttt{flight\_prediction\_models.joblib}). This artifact contains not just the trained model weights, but the entire fitted Scikit-learn `Pipeline` object, including the data preprocessors and all necessary helper objects.
+\end{itemize}
+
+\paragraph{Online Inference Application (\texttt{app.py})}
+This component is the lightweight, user-facing Dash web application. It is designed for high performance and low latency.
+\begin{itemize}
+    \item \textbf{Responsibilities:} On startup, the application loads the pre-trained model artifact from the offline pipeline into memory. Its primary role is to serve user requests. When a user submits data through the web interface (e.g., an airport and a date), the application uses the loaded pipeline to preprocess the input and generate a prediction in milliseconds.
+    \item \textbf{Execution:} The application runs continuously as a web server, handling concurrent user requests. It performs no model training.
+\end{itemize}
+
+\paragraph{Justification for this Architecture} This separation of concerns is a critical design choice that provides several key advantages:
+\begin{itemize}
+    \item \textbf{Performance:} User requests are served instantly because the time-consuming training process is decoupled from the live application.
+    \item \textbf{Scalability:} The inference application is lightweight and can be easily replicated to handle increased user traffic, without needing to replicate the resource-heavy training environment.
+    \item \textbf{Reliability and Stability:} The production environment is isolated from the training environment. Any potential bugs or issues during model retraining will not cause downtime for the live user-facing application.
+\end{itemize}

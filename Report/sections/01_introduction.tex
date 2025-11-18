@@ -1,0 +1,37 @@
+
+\chapter{General Introduction}
+\label{chap:introduction}
+
+The global aviation industry operates as a critical artery of the world economy, facilitating commerce, tourism, and connectivity. Its performance is a key barometer of economic health, yet it is also highly susceptible to global events. The COVID-19 pandemic represented an unprecedented disruption, grounding fleets and causing a historic contraction in air traffic. In the wake of this event, airport authorities and operators face the immense challenge of navigating a complex and volatile recovery. This new reality demands a paradigm shift from traditional, retrospective analysis to agile, data-driven, and forward-looking decision-making.
+
+It is within this dynamic context that my end-of-year internship took place at the \textbf{Office National Des Aéroports (ONDA)}, the public establishment responsible for the management and development of Morocco's airport infrastructure. Faced with the limitations of manual data analysis and the critical need for predictive insights, ONDA presented a clear mandate: to leverage Artificial Intelligence to better understand and anticipate flight traffic dynamics. To address this challenge, I was tasked with the mission of designing, developing, and deploying an end-to-end \textbf{Flight Traffic Analysis and Prediction Dashboard}.
+
+This project stands at the intersection of data engineering, machine learning, and software development. The primary goal was not merely to analyze historical data, but to operationalize predictive intelligence through a robust and accessible application. The core technical objectives defined for this mission were as follows:
+
+The first objective was to develop a data processing and feature engineering pipeline capable of transforming raw time-series flight data into a structured dataset suitable for machine learning. The pipeline incorporated methods to represent cyclical temporal patterns and encode contextual factors such as the distinct phases of the COVID-19 pandemic.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../images/organigrame.png}
+    \caption*{L'Organigrame d'ONDA}
+\end{figure}
+
+
+
+The second objective was to implement and evaluate several machine learning models for flight traffic forecasting. This included establishing a linear baseline using Ridge Regression and developing a non-linear model based on the LightGBM framework. Model performance was assessed through comparative analysis to determine predictive accuracy and robustness.
+
+The final objective was to deploy the trained models in an interactive web application built with Dash Plotly. The application enabled on-demand forecasts and analytical exploration of model outputs, facilitating data-driven decision-making for end users.
+
+This report will detail the complete methodology, from initial problem definition to final deployment, following the Cross-Industry Standard Process for Data Mining (CRISP-DM). The document is structured as follows:
+
+\begin{itemize}
+    \item \textbf{Chapter 2} Presents the general context of the project, including a detailed presentation of ONDA, the project's scope, and the work methodology adopted.
+    
+    \item \textbf{Chapter 3} Details the analysis of the existing system and the comprehensive specification of the functional and non-functional requirements for the new solution.
+    
+    \item \textbf{Chapter 4} Outlines the design phase, justifying the key technical choices and presenting the global system architecture.
+    
+    \item \textbf{Chapter 5} Describes the implementation of the solution, including the technology stack, the technical architecture, and the results obtained from the predictive models.
+    
+    \item Finally, a \textbf{General Conclusion} summarizes the achievements of the project, discusses the challenges encountered, and proposes perspectives for future work.
+\end{itemize}

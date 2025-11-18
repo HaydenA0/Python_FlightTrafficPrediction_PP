@@ -1,0 +1,39 @@
+% --- This goes into sections/06_conclusion.tex ---
+
+\chapter{General Conclusion}
+\label{chap:conclusion}
+
+This internship project addressed a central analytical challenge at the Office National des Aéroports (ONDA): transitioning from a manual, retrospective mode of flight traffic analysis toward a predictive, data-driven framework capable of supporting strategic and operational decision-making. Guided by the CRISP-DM methodology, the work encompassed all stages of a modern data science pipeline—from data acquisition and preprocessing to model development, evaluation, and deployment within an interactive analytical platform.
+
+\section{Summary of Achievements}
+
+The primary objective was to construct an end-to-end predictive system capable of forecasting daily flight operations across airports in Morocco. This goal was met through the implementation of a robust, automated data pipeline and the development of machine learning models designed to capture the complex temporal and contextual dynamics of flight activity.
+
+A key contribution of this project was the development of a feature engineering framework that accurately modeled both cyclical temporal effects (e.g., weekly and seasonal variations) and pandemic-related structural shifts. These features proved essential for improving the explanatory power of the models and ensuring generalization across different time periods.
+
+Two distinct modeling approaches were implemented and systematically compared. The Ridge Regression model established a linear performance baseline, achieving an accuracy of approximately \textbf{78\%} with a mean computation time of under \textbf{100 milliseconds} per prediction. In contrast, the LightGBM model achieved substantially higher accuracy, approximately \textbf{92\%}, by effectively capturing non-linear dependencies and complex interactions within the data. This improvement came with a higher computational cost—an average inference time of roughly \textbf{4 seconds} per forecast—but remained within acceptable operational limits for interactive use. This trade-off between model complexity, predictive accuracy, and response time was carefully evaluated to balance interpretability and performance within the deployed system.
+
+The final deliverable integrated these trained models into a fully interactive \texttt{Dash Plotly} web application. The platform enables users to visualize historical patterns, generate on-demand forecasts, and access key performance indicators (KPIs) without requiring technical expertise. This integration represents a major step toward operationalizing data science within ONDA’s decision-making processes.
+
+\section{Challenges and Lessons Learned}
+
+Throughout the project, several technical challenges were encountered and systematically addressed. Managing data heteroscedasticity required the application of a logarithmic transformation to stabilize variance across airports of different sizes. Iterative feature engineering was essential for improving model sensitivity to pandemic-related effects and long-term seasonal trends. Finally, ensuring a seamless user experience demanded thoughtful interface design to translate complex analytical results into clear, actionable insights for non-technical users. These challenges underscored the importance of iterative development and cross-disciplinary collaboration in data science projects of operational relevance.
+
+\section{Future Work and Perspectives}
+
+This project establishes a solid foundation for future analytics initiatives within ONDA. Several promising directions for extension have been identified:
+
+\begin{itemize}
+    \item \textbf{Automation through MLOps:} Implementing a continuous integration and deployment (CI/CD) pipeline to automate data ingestion, model retraining, and deployment as new flight data becomes available.
+    
+    \item \textbf{Integration of External Data Sources:} Incorporating exogenous variables such as economic indicators, tourism statistics, fuel prices, and event schedules to enhance model robustness and forecast precision.
+    
+    \item \textbf{Exploration of Advanced Architectures:} Investigating deep learning models such as Long Short-Term Memory (LSTM) networks or Transformer-based architectures, which may better capture long-range dependencies and multi-seasonal patterns in flight traffic data.
+    
+    \item \textbf{Extension of Dashboard Capabilities:} Enhancing the web application to support scenario-based simulations and anomaly detection, providing users with proactive insights into potential disruptions or deviations from expected operational patterns.
+\end{itemize}
+
+\section{Concluding Remarks}
+
+In summary, this project achieved its core goal of developing a scalable, accurate, and interpretable forecasting system for national airport operations. The comparative analysis of linear and non-linear models demonstrated that while simple linear methods can deliver fast and reasonably accurate predictions, advanced ensemble techniques like LightGBM yield significantly higher precision at a modest computational cost. The successful deployment of the predictive system into an interactive, bilingual platform marks an important step toward institutionalizing data-driven decision-making within ONDA, setting the stage for continued innovation in predictive analytics and intelligent infrastructure management.
+

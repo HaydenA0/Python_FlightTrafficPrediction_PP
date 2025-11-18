@@ -1,0 +1,51 @@
+% --- This goes into sections/03_analysis.tex ---
+
+\chapter{Analysis and Requirements Specification}
+\label{chap:analysis}
+
+This chapter provides a formal analysis of the project's starting point and a detailed specification of the requirements for the developed solution. The first section deconstructs the limitations of the pre-existing workflow, establishing the technical and operational gaps. The second section translates these gaps into a concrete set of functional and non-functional requirements that served as the engineering blueprint for the project.
+
+\section{Analysis of the Existing Situation}
+The pre-existing framework for flight traffic analysis at the organization was primarily a manual and retrospective process. This system, while functional for basic historical reporting, presented significant technical and operational limitations that constrained agile decision-making and precluded any form of predictive analytics.
+
+The typical workflow involved ad-hoc data requests fulfilled by technical teams. This process generally followed these steps: a business user would request specific data, a query would be run against a database, and the results would be exported as a static file (e.g., CSV). Subsequent analysis was then performed in spreadsheet software like Microsoft Excel.
+
+The system exhibited several structural and methodological limitations that constrained its analytical effectiveness. High latency in data processing resulted in substantial delays between data acquisition and the generation of actionable insights, largely due to the manual and non-repeatable nature of the workflow. The system lacked scalability, as its dependence on spreadsheet-based tools restricted the volume of data that could be efficiently processed. This limitation frequently led to performance degradation and instability when handling the large-scale flight traffic dataset. Moreover, the analytical framework was entirely descriptive and lacked predictive functionality. It could summarize past trends but provided no mechanism to extrapolate future traffic volumes based on historical patterns, a critical requirement in post-pandemic forecasting. The analytical depth was also limited, as the tools in use could not capture non-linear dependencies, cyclical variations, or heteroscedastic behavior within the data, resulting in incomplete representations of underlying dynamics. Finally, reporting outputs were static and non-interactive, offering end-users fixed visualizations without the ability to perform independent exploration or parameterized queries. This absence of interactivity restricted the capacity for data-driven investigation and iterative analytical refinement.
+
+
+\section{Requirements Specification}
+To overcome these limitations, a set of precise functional and non-functional requirements was defined. These requirements guided the design and implementation of the new system, ensuring it would meet both technical standards and user needs.
+
+\subsection{Functional Requirements}
+Functional requirements define the specific behaviors and features the system must provide. They answer the question: "What must the solution do?"
+
+\begin{enumerate}
+    \item[\textbf{FR-1:}] \textbf{Dynamic Data Visualization:}  
+    The system must render fully interactive visualizations of historical flight traffic data, enabling users to examine temporal and spatial trends at multiple levels of granularity. Users must be able to apply filters that dynamically adjust the entire dashboard view based on a selected date range, airport, or other contextual dimensions such as airline or flight type. The visualization layer should update instantaneously in response to user input, ensuring that patterns, anomalies, and seasonality effects can be explored intuitively without requiring manual data manipulation or static report generation.
+
+    \item[\textbf{FR-2:}] \textbf{Key Performance Indicator (KPI) Dashboard:}  
+    The central dashboard must present a concise but comprehensive overview of operational performance through aggregated Key Performance Indicators (KPIs), including Total Operations, Arrivals, and Departures. In addition to these core metrics, the system must compute and display comparative indicators that quantify changes in traffic relative to pre-pandemic baselines (specifically the equivalent period in 2019). These indicators must be automatically recalculated as the user adjusts the date range or filtering parameters, allowing for immediate contextual interpretation of current performance against historical norms.
+
+    \item[\textbf{FR-3:}] \textbf{On-Demand Predictive Forecasting:}  
+    The application must provide a dedicated interface for generating flight traffic forecasts on demand. Users must be able to select a forecasting model from the available machine learning options, specify an airport or geographic region of interest, and define a future date or time horizon. Upon execution, the system must return a quantitative prediction of expected flight volume, accompanied by confidence intervals or uncertainty estimates where applicable. This functionality is intended to support scenario analysis, operational planning, and data-driven decision-making in volatile or rapidly changing market conditions.
+
+    \item[\textbf{FR-4:}] \textbf{Model Performance Transparency:}  
+    To ensure interpretability and trust in model outputs, the application must include a dedicated section presenting detailed performance metrics for all implemented machine learning models. These metrics—such as the coefficient of determination (R²), Mean Absolute Error (MAE), and Root Mean Squared Error (RMSE)—must be reported for both training and testing datasets. Where relevant, additional diagnostic information (e.g., feature importance rankings or residual plots) should be available to allow technical users to assess model validity, overfitting, and generalization performance.
+
+    \item[\textbf{FR-5:}] \textbf{Bilingual User Interface (Internationalization):}  
+    The system’s user interface must fully support bilingual operation in English and French. All textual elements—including titles, axis labels, tooltips, navigation menus, and embedded messages—must switch seamlessly between the two languages without loss of formatting or functionality. Language selection should persist across sessions and apply consistently to all application components, ensuring accessibility and usability for a linguistically diverse user base across international contexts.
+\end{enumerate}
+
+
+\subsection{Non-Functional Requirements}
+Non-functional requirements define the quality attributes of the system. They answer the question: "How well must the solution perform its functions?"
+
+\begin{enumerate}
+    \item[\textbf{NFR-1:}] \textbf{Performance:} The application must be highly responsive. All dashboard components, including charts and KPIs, must render within 5 seconds of a user interaction (e.g., changing a date filter). Model predictions must also be delivered in near-real-time (under 3 seconds).
+
+    \item[\textbf{NFR-2:}] \textbf{Usability:} The Graphical User Interface (GUI) must be clean, intuitive, and designed for non-technical users. The workflow for generating a prediction or filtering data must be self-explanatory with minimal to no training required.
+
+    \item[\textbf{NFR-3:}] \textbf{Reliability:} The system must be reliable. Data displayed must be accurate and consistent with the source. Predictions generated by the models for the same inputs must be deterministic and reproducible.
+
+    \item[\textbf{NFR-4:}] \textbf{Maintainability:} The source code for the entire application (both the training pipeline and the Dash app) must be modular, well-documented, and adhere to software engineering best practices to facilitate future updates, bug fixes, and feature additions.
+

@@ -1,0 +1,16 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Log(Total Flights) vs. Average Pre-Pandemic Traffic.}}{13}{figure.caption.10}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Box plot analysis of key categorical features.}}{14}{figure.caption.12}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Core components of the project's technology stack.}}{19}{figure.caption.13}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Global System Architecture: The offline training pipeline produces a model artifact that is consumed by the online inference application.}}{20}{figure.caption.14}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Effect of logarithmic transformation on data skewness.}}{28}{figure.caption.19}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces The main "Operations Summary" tab.}}{29}{figure.caption.21}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces The "Flight Prediction" interface.}}{29}{figure.caption.22}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Europe Airports Map.}}{30}{figure.caption.23}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces General Statistics.}}{30}{figure.caption.24}%
+\addvspace {10\p@ }

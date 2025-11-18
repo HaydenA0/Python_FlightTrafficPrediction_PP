@@ -1,0 +1,103 @@
+\chapter{General Project Context}
+\section{Project Presentation}
+The project undertaken during this internship, titled "Flight Traffic Analysis and Prediction Dashboard," was conceived as an end-to-end data science solution. Its purpose is to transition ONDA from a state of retrospective data analysis to a proactive, predictive operational posture. This involves not only the creation of a machine learning model but also its successful integration into a user-centric application that delivers actionable insights.
+
+\subsection{Problem Statement}
+\label{subsec:problem_statement}
+Prior to this project, the analysis of flight traffic data at the operational level was constrained by several methodological and infrastructural limitations that reduced analytical efficiency and predictive accuracy. The existing workflow lacked a centralized and automated analytical system, relying instead on manual data extraction and static spreadsheet reports. This approach was non-scalable, introduced frequent human error, and prevented users from performing timely exploratory analysis or generating ad hoc insights. In addition, the analytical framework was unable to model the complex, non-linear dynamics inherent in flight traffic data. The dataset contained multiple overlapping temporal patterns, including weekly and annual seasonality, as well as abrupt structural changes such as those induced by the COVID-19 pandemic. Standard linear techniques were inadequate for capturing these relationships, particularly given the presence of heteroscedasticity, where the variance in flight volume varied systematically with airport size. Finally, the analytical infrastructure lacked any predictive capability. Operational and strategic decisions were based solely on retrospective analysis and expert judgment, without a quantitative forecasting model capable of estimating future flight volumes at the airport or route level. This absence of predictive analytics limited the organization’s ability to optimize resource allocation, workforce planning, and long-term infrastructure development in a rapidly changing aviation environment.
+
+
+
+% --- Corrected section within sections/02_context.tex ---
+
+\subsection{Objectives}
+\label{subsec:objectives}
+In response to the identified problem statement, a set of precise, technical objectives was formulated to guide the development of the solution. The successful completion of these objectives serves as the project's primary success criteria:
+
+\begin{enumerate}
+    % --- CORRECTED ITEM 1 BELOW ---
+    \item \textbf{Engineer a Robust Data Processing Pipeline:} The first objective was to design and implement an automated pipeline to process the raw flight data. This included cleaning, transformation, and sophisticated feature engineering to create a dataset optimized for machine learning. Key engineering tasks involved creating cyclical features (using sine/cosine transformations) to capture seasonality and developing a categorical \textbf{\texttt{pandemic\_phase} feature to explicitly model the pandemic's non-linear impact.}
+
+    \item \textbf{Develop and Quantitatively Evaluate Predictive Models:} The second objective was to build and rigorously compare multiple regression models. This involved:
+    \begin{itemize}
+        \item Establishing a robust baseline using a regularized linear model (\textbf{Ridge Regression}).
+        \item Implementing a high-performance, non-linear model using a gradient boosting framework (\textbf{Tuned LightGBM}) to capture the complex data dynamics.
+        \item Evaluating all models on a chronologically-split test set using standard metrics (R², MAE, RMSE) on both log-transformed and original scales to ensure a comprehensive understanding of their real-world performance.
+    \end{itemize}
+
+    \item \textbf{Deploy the Models into an Interactive Application:} The final and most critical objective was to operationalize the trained models. This required the development of a self-contained web application using the Dash Plotly framework. The application must provide an intuitive interface for end-users to generate on-demand predictions and visually explore the underlying data, thereby democratizing access to advanced analytics within the organization.
+\end{enumerate}
+
+
+\newpage
+
+\section{Work Methodology}
+\label{sec:methodology}
+To ensure a structured and goal-oriented approach for this data science project, the \textbf{Cross-Industry Standard Process for Data Mining (CRISP-DM)} methodology was adopted. This iterative framework is the industry standard for analytics and machine learning projects, as it provides a clear roadmap from business understanding to final deployment. 
+
+
+% --- NEW SECTION: Add this to the end of sections/02_context.tex ---
+
+\section{Exploratory Data Analysis}
+\label{sec:eda}
+The Data Understanding phase of the CRISP-DM cycle involved a thorough Exploratory Data Analysis (EDA) to uncover patterns, validate assumptions, and guide the feature engineering process. The key findings from this analysis are presented in this section and directly informed the design of the predictive models. All visualizations are plotted on a logarithmic scale for the target variable (`Log(Total Flights)`) to better handle the data's wide distribution and heteroscedasticity.
+
+\paragraph{Relationship with Historical Traffic}
+The most critical hypothesis was that an airport's historical traffic is the strongest predictor of its current traffic. Figure \ref{fig:scatter_plots} visually confirms this. Figure \ref{fig:scatter_color} shows a strong positive correlation between an airport's average pre-pandemic traffic and its daily flight volume. More importantly, the points are stratified by color according to the pandemic phase, visually demonstrating that the `pandemicphase` feature is essential for capturing the systematic drop and recovery in traffic. Figure \ref{fig:scatter_reg} reinforces this relationship but also reveals a crucial insight: the trend is non-linear. This curvature justifies the need for a non-linear model, like LightGBM, to accurately capture the data's dynamics, as a simple linear model would introduce systematic errors.
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}{1.14\textwidth}
+        \includegraphics[width=\textwidth]{images/plot_lr_scatter_prepandemic_traffic.png}
+        \caption{Traffic colored by Pandemic Phase.}
+        \label{fig:scatter_color}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.79\textwidth}
+        \includegraphics[width=\textwidth]{images/plot_lr_regplot_prepandemic_traffic.png}
+        \caption{Overall trend with regression line.}
+        \label{fig:scatter_reg}
+    \end{subfigure}
+    \caption{Log(Total Flights) vs. Average Pre-Pandemic Traffic.}
+    \label{fig:scatter_plots}
+\end{figure}
+
+\paragraph{Analysis of Categorical Variables}
+To understand the influence of various categorical factors, several box plots were generated, as shown in Figure \ref{fig:box_plots}.
+\begin{itemize}
+    \item \textbf{Impact of the Pandemic:} Figure \ref{fig:box_year} clearly shows the stable traffic from 2016-2019, followed by a dramatic drop in 2020. However, Figure \ref{fig:box_pandemic_phase} provides far more granular insight, pinpointing the "Pandemic Peak Drop" as the absolute low and illustrating the subsequent volatile recovery. This validates the decision to engineer the `pandemicphase` feature rather than simply using the year.
+    
+    \item \textbf{Temporal and Structural Factors:} Figure \ref{fig:box_dayofweek} reveals that the day of the week has a relatively minor impact on flight volumes, with medians remaining stable across the week. In contrast, Figure \ref{fig:box_airport_volume} demonstrates a powerful, monotonic relationship between our engineered airport size category and flight traffic. This confirms that airport size is a dominant predictive feature.
+\end{itemize}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/plot_lr_boxplot_year.png}
+        \caption{Distribution by Year.}
+        \label{fig:box_year}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/plot_lr_boxplot_pandemic_phase.png}
+        \caption{Distribution by Pandemic Phase.}
+        \label{fig:box_pandemic_phase}
+    \end{subfigure}
+    
+    \vspace{1cm} % Add some vertical space between rows of subfigures
+    
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/plot_lr_boxplot_dayofweek.png}
+        \caption{Distribution by Day of Week.}
+        \label{fig:box_dayofweek}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.49\textwidth}
+        \includegraphics[width=\textwidth]{images/plot_lr_boxplot_airport_volume.png}
+        \caption{Distribution by Airport Volume Category.}
+        \label{fig:box_airport_volume}
+    \end{subfigure}
+    
+    \caption{Box plot analysis of key categorical features.}
+    \label{fig:box_plots}
+\end{figure}

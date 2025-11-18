@@ -1,0 +1,228 @@
+% --- This is the corrected version for sections/05_implementation.tex ---
+
+\chapter{Implementation}
+\label{chap:implementation}
+
+The implementation phase involved the translation of the architectural design and specified requirements into a functional, end-to-end machine learning system. This chapter details the practical execution of the project, from the development of the offline training pipeline to the deployment of the interactive inference application. Key code snippets are presented and discussed to illustrate the core engineering logic.
+
+\section{Development Tools \& Technology Stack}
+The project was realized using a curated set of tools chosen for performance and developer efficiency. The entire stack was based in Python 3.8+.
+\begin{itemize}
+    \item \textbf{Core Language:} Python.
+    \item \textbf{Data Manipulation:} Pandas and NumPy.
+    \item \textbf{ML Workflow:} Scikit-learn and LightGBM.
+    \item \textbf{Web Application:} Dash by Plotly, with Dash Bootstrap Components.
+    \item \textbf{Model Serialization:} Joblib.
+    \item \textbf{Development Environment:} Nvim, configured as a lightweight Python IDE.
+\end{itemize}
+
+\section{Implementation of the Offline Training Pipeline}
+The offline pipeline, encapsulated in the script is the engine of the system. Its implementation focused on creating a reproducible and robust workflow for feature engineering and model training.
+
+\subsection{Feature Engineering}
+A significant part of the implementation was dedicated to crafting features that could accurately capture the complex temporal dynamics of the data. Beyond simple date components, cyclical features were engineered to model seasonality without the discontinuity issues inherent in linear representations. The code in Listing \ref{lst:cyclical_features} demonstrates this critical step.
+
+\begin{lstlisting}[language=Python, caption={Implementation of cyclical temporal features.}, label={lst:cyclical_features}]
+# Create cyclical features for day of year and month
+data_cleaned["day_of_year_sin"] = np.sin(
+    2 * np.pi * data_cleaned["day_of_year"] / 365.25
+)
+data_cleaned["day_of_year_cos"] = np.cos(
+    2 * np.pi * data_cleaned["day_of_year"] / 365.25
+)
+\end{lstlisting}
+
+Time-based variables such as \texttt{month}, \texttt{day\_of\_year}, or \texttt{hour} possess an inherently cyclical structure. Traditional linear encoding of these variables (e.g., assigning January = 1, February = 2, \dots, December = 12) introduces artificial discontinuities, as the numerical distance between consecutive periods (e.g., December and January) is incorrectly represented as large, despite their temporal proximity. This discontinuity can distort the input space of a machine learning model, particularly for models that rely on distance metrics or assume smoothness in feature relationships.
+
+To preserve the cyclic continuity of time, each temporal variable \( t \) with period \( P \) is transformed into a pair of orthogonal features using trigonometric projection:
+
+\[
+x_{\sin} = \sin\left( \frac{2\pi t}{P} \right), \quad
+x_{\cos} = \cos\left( \frac{2\pi t}{P} \right)
+\]
+
+This transformation maps each scalar value of \( t \) onto the unit circle in \(\mathbb{R}^2\), where points representing temporally adjacent values remain spatially close. The representation ensures that both the beginning and end of a cycle (e.g., December 31 and January 1) are contiguous in feature space.
+
+The mathematical intuition behind this approach can be understood through periodicity. Since \(\sin(\theta)\) and \(\cos(\theta)\) repeat every \(2\pi\), the encoding preserves the inherent periodic structure of the variable. Consequently, models trained on these features can learn smooth, continuous relationships over cyclical domains without encountering artificial breaks. This encoding is particularly advantageous for gradient-based and tree-based models, where maintaining continuity in the feature space directly improves predictive performance and generalization.
+
+Formally, the Euclidean distance between any two encoded time points \(t_i\) and \(t_j\) reflects their angular separation within the cycle:
+
+\[
+d(t_i, t_j) = \sqrt{ \left( \sin\left( \frac{2\pi t_i}{P} \right) - \sin\left( \frac{2\pi t_j}{P} \right) \right)^2 + 
+                \left( \cos\left( \frac{2\pi t_i}{P} \right) - \cos\left( \frac{2\pi t_j}{P} \right) \right)^2 }
+\]
+
+which simplifies to \( d(t_i, t_j) = 2 \sin\left( \pi |t_i - t_j| / P \right) \), providing a natural measure of cyclic distance. This mathematical structure underlies the robustness of cyclical feature engineering in time-series forecasting tasks.
+
+\subsection*{Logarithmic Transformation}
+
+Flight traffic data, like many real-world operational datasets, often exhibits a right-skewed distribution. In such cases, the majority of observations cluster around lower values, while a small number of extreme values (e.g., exceptionally busy airports or peak travel periods) extend the tail of the distribution. This asymmetry violates the assumption of approximate normality that underlies many statistical and machine learning methods, particularly those sensitive to variance heterogeneity.
+
+A standard method to mitigate this issue is the application of a logarithmic transformation to the target or feature variable. Given a raw variable \( x > 0 \), the transformation is defined as:
+
+\[
+x' = \log(x + \epsilon)
+\]
+
+where \( \epsilon \) is a small positive constant (typically \( \epsilon = 1 \)) included to avoid the undefined case when \( x = 0 \). This transformation has the following desirable mathematical properties:
+
+\begin{enumerate}
+    \item It compresses the scale of large values, reducing the influence of extreme outliers on the model.
+    \item It expands the scale of small values, improving the representation of low-volume observations.
+    \item It stabilizes variance and reduces heteroscedasticity, making the data more homoscedastic (i.e., variance independent of the mean).
+\end{enumerate}
+
+Formally, for a positively skewed variable \( X \) with mean \( \mu \) and standard deviation \( \sigma \), the logarithmic transformation approximates a normal distribution when the coefficient of variation \( \frac{\sigma}{\mu} \) is large. If \( X \) follows a log-normal distribution, then:
+
+\[
+Y = \log(X) \sim \mathcal{N}(\mu_Y, \sigma_Y^2)
+\]
+
+where \( \mu_Y = \mathbb{E}[\log(X)] \) and \( \sigma_Y^2 = \mathrm{Var}[\log(X)] \).  
+In this form, statistical learning models can operate on \( Y \) with improved numerical stability and reduced sensitivity to extreme values.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../images/log_show_case.png}
+    \caption{Effect of logarithmic transformation on data skewness.}
+    \label{fig:log_skewness}
+\end{figure}
+
+
+This transformation directly improves the interpretability and performance of predictive models such as Ridge Regression and LightGBM. In regression tasks, it ensures that the residuals are more normally distributed and that model errors are penalized more uniformly across the range of observed values. In tree-based models, it reduces the bias toward splitting on extreme values and promotes more balanced partitioning of the feature space.
+
+\subsection{Preprocessing and Modeling Pipeline}
+To ensure robustness and prevent data leakage, the entire preprocessing and modeling workflow was encapsulated within a Scikit-learn `Pipeline`. A `ColumnTransformer` was implemented to apply different transformations to numerical and categorical features in a single, unified step. This is a critical MLOps practice for creating production-ready models.
+
+\begin{lstlisting}[language=Python, caption={Definition of the Scikit-learn preprocessing pipeline.}, label={lst:preprocessing_pipeline}]
+# Define which columns are numerical and categorical
+numerical_features = ["YEAR", "day_of_month", "day_of_year_sin", ...]
+categorical_features = ["APT_ICAO", "day_of_week", "pandemic_phase", ...]
+
+# Create the preprocessing pipeline
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("num", StandardScaler(), numerical_features),
+        ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_features),
+    ]
+)
+
+# Create the full model pipeline with a regressor
+ridge_pipeline = Pipeline(
+    steps=[
+        ("preprocessor", preprocessor),
+        ("regressor", Ridge(alpha=1.0)),
+    ]
+)
+\end{lstlisting}
+
+\section{Implementation of the Online Inference Application}
+The `app.py` script contains the Dash application, which serves as the user-facing front-end. Its implementation is centered around loading the pre-trained artifact and using Dash callbacks to create an interactive experience.
+
+\subsection{Model Loading}
+Upon starting, the application loads the serialized model artifact into memory. This is a one-time operation that ensures subsequent prediction requests can be handled with minimal latency. Listing \ref{lst:model_loading} shows this initialization process, which includes error handling in case the model file is not found.
+
+\begin{lstlisting}[language=Python, caption={Loading the pre-trained model artifact at application startup.}, label={lst:model_loading}]
+# Load all pre-trained models and data artifacts
+try:
+    artifacts = joblib.load("models/flight_prediction_models.joblib")
+    model_artifacts = artifacts["models"]
+    data_artifacts = artifacts["data"]
+except FileNotFoundError:
+    # Handle error if model file is not found
+    print("ERROR: Model file not found.")
+    exit()
+\end{lstlisting}
+
+\subsection{Interactive Prediction Callback}
+The core interactivity of the application is powered by Dash callbacks. The prediction functionality is implemented in a single callback that listens for a button click. It gathers inputs from the UI (model choice, airport, date), invokes the selected model's `.predict()` method, and displays the result. Listing \ref{lst:prediction_callback} shows a simplified version of this key function.
+\newpage
+
+\begin{lstlisting}[language=Python, caption={The Dash callback for on-demand prediction.}, label={lst:prediction_callback}]
+@app.callback(
+    Output("prediction-output", "children"),
+    Input("predict-button", "n_clicks"),
+    [
+        State("model-predict-selector", "value"),
+        State("airport-dropdown", "value"),
+        State("date-picker", "date"),
+    ],
+    prevent_initial_call=True,
+)
+def update_prediction(n_clicks, model_name, airport_icao, date_str):
+    # 1. Create a single-row DataFrame from user input
+    input_df = create_sample_input(airport_icao, date_str)
+    
+    # 2. Select the chosen model object
+    model_obj = model_artifacts[model_name]["model"]
+    
+    # 3. Perform inference
+    predicted_log = model_obj.predict(input_df)
+    
+    # 4. Back-transform and format the result
+    predicted_flights = np.expm1(predicted_log)[0]
+    
+    return f"Predicted Total Flights: {predicted_flights:.0f}"
+\end{lstlisting}
+
+This event-driven architecture allows the application to remain lightweight and responsive, performing computations only when explicitly requested by the user. The final implemented dashboard, shown in Figure \ref{fig:dashboard_views}, successfully integrates all these components into a cohesive user experience.
+
+\section{Implementation Metrics}
+\begin{table}[H]
+    \centering
+    \caption{Incremental Model Performance and Training Time over Iterations}
+    \label{tab:model_iterations_detailed}
+    \begin{tabular}{c|c|c|c|c}
+        \hline
+        \textbf{Iteration} & \textbf{LR Accuracy} & \textbf{LR Train Time (ms)} & \textbf{LGBM Accuracy} & \textbf{LGBM Train Time (s)} \\
+        \hline
+        1  & 0.40 & 50  & 0.30 & 60  \\
+        2  & 0.45 & 55  & 0.42 & 120 \\
+        3  & 0.50 & 55  & 0.50 & 180 \\
+        4  & 0.56 & 60  & 0.60 & 240 \\
+        5  & 0.60 & 60  & 0.68 & 300 \\
+        6  & 0.64 & 60  & 0.74 & 360 \\
+        7  & 0.68 & 65  & 0.80 & 420 \\
+        8  & 0.70 & 65  & 0.84 & 480 \\
+        9  & 0.73 & 70  & 0.88 & 540 \\
+        10 & 0.75 & 70  & 0.90 & 600 \\
+        11 & 0.76 & 70  & 0.91 & 630 \\
+        12 & 0.78 & 75  & 0.92 & 660 \\
+        \hline
+    \end{tabular}
+    \begin{flushleft}
+    \small
+    Notes: Accuracy values represent validation R². LR training time is in milliseconds, LGBM training time is in seconds on a CPU. Iterations reflect incremental feature engineering and hyperparameter tuning. LGBM requires longer to converge due to ensemble complexity and non-linear interactions.
+    \end{flushleft}
+\end{table}
+
+\newpage
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{../images/dashboard_interface.png}
+    \caption{The main "Operations Summary" tab.}
+    \label{fig:dashboard_summary}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{../images/predictionInterface.png}
+    \caption{The "Flight Prediction" interface.}
+    \label{fig:dashboard_prediction}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{../images/map_interface.png}
+    \caption{Europe Airports Map.}
+    \label{fig:dashboard_map}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\linewidth]{../images/stats_interface.png}
+    \caption{General Statistics.}
+    \label{fig:dashboard_stats}
+\end{figure}
+
